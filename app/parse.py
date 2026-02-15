@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
+from urllib.parse import urljoin
 
 MAIN_URL = "https://mate.academy"
 
@@ -26,11 +27,11 @@ def parse_main_page(html: str) -> list[tuple[str, str, str]]:
     seen = set()
 
     for card in cards:
-        href = card.get("href")
-        if not href or href in seen:
+        course_path = card.get("href")
+        if not course_path or course_path in seen:
             continue
 
-        seen.add(href)
+        seen.add(course_path)
 
         name_el = card.select_one("h3 span")
         duration_el = card.select_one("p.ProfessionCard_duration__13PwX")
@@ -38,7 +39,7 @@ def parse_main_page(html: str) -> list[tuple[str, str, str]]:
         name = name_el.text.strip() if name_el else ""
         duration = duration_el.text.strip() if duration_el else ""
 
-        full_url = MAIN_URL + href
+        full_url = urljoin(MAIN_URL, course_path)
 
         if name:
             courses_data.append((name, duration, full_url))
@@ -69,5 +70,5 @@ def get_all_courses() -> list[Course]:
                 duration=duration,
             )
         )
-    print(courses)
+
     return courses
